@@ -5,7 +5,7 @@ import type {
   MobileRechargeLead,
   PaymentBankServiceRequest,
   WifiBookingLead,
-} from "../backend.d";
+} from "../backend";
 import { useActor } from "./useActor";
 
 export type {
@@ -87,6 +87,9 @@ export function useSubmitWifiBooking() {
       aadhaarFront: ExternalBlob | null;
       aadhaarBack: ExternalBlob | null;
       paymentScreenshot: ExternalBlob | null;
+      latitude: string | null;
+      longitude: string | null;
+      googleMapsLink: string | null;
     }) => {
       if (!actor) throw new Error("Actor not ready");
       return actor.submitWifiBookingLead(
@@ -97,6 +100,9 @@ export function useSubmitWifiBooking() {
         data.aadhaarFront,
         data.aadhaarBack,
         data.paymentScreenshot,
+        data.latitude,
+        data.longitude,
+        data.googleMapsLink,
       );
     },
     onSuccess: () => {

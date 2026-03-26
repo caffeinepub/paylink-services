@@ -4,6 +4,7 @@ import {
   CreditCard,
   IndianRupee,
   Phone,
+  QrCode,
   Shield,
   Smartphone,
   Tv,
@@ -93,15 +94,26 @@ export default function Home() {
             <p className="text-xs text-muted-foreground">Vasu Communication</p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => navigate({ to: "/admin" })}
-          className="text-xs text-muted-foreground flex items-center gap-1 hover:text-primary transition-colors"
-          data-ocid="nav.link"
-        >
-          <Shield className="w-3.5 h-3.5" />
-          Admin
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/qr" })}
+            className="text-xs text-muted-foreground flex items-center gap-1 hover:text-primary transition-colors"
+            data-ocid="nav.qr"
+          >
+            <QrCode className="w-3.5 h-3.5" />
+            QR
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/admin" })}
+            className="text-xs text-muted-foreground flex items-center gap-1 hover:text-primary transition-colors"
+            data-ocid="nav.link"
+          >
+            <Shield className="w-3.5 h-3.5" />
+            Admin
+          </button>
+        </div>
       </header>
 
       <div className="hero-gradient px-4 py-6 text-white">
@@ -136,6 +148,34 @@ export default function Home() {
             </div>
           </div>
         </motion.div>
+      </div>
+
+      {/* QR Code Banner */}
+      <div className="px-4 pt-4">
+        <motion.button
+          type="button"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          onClick={() => navigate({ to: "/qr" })}
+          className="w-full bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-2xl p-4 flex items-center gap-4 text-left"
+          data-ocid="home.qr_banner"
+        >
+          <div className="bg-indigo-100 rounded-xl p-2.5">
+            <QrCode className="w-6 h-6 text-indigo-600" />
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-sm text-foreground">
+              Customer QR Code
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Scan karke website seedha kholein
+            </p>
+          </div>
+          <span className="text-xs font-semibold text-indigo-600 bg-indigo-100 px-3 py-1.5 rounded-xl">
+            Dekho
+          </span>
+        </motion.button>
       </div>
 
       <div className="px-4 py-5">

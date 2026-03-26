@@ -16,7 +16,13 @@ import { ExternalBlob } from "../backend";
 import { AppLayout, PageHeader } from "../components/AppLayout";
 import { useSubmitMobileRecharge } from "../hooks/useQueries";
 
-type Plan = { amount: string; validity: string; data: string; calls: string };
+type Plan = {
+  amount: string;
+  validity: string;
+  data: string;
+  calls: string;
+  badge?: string;
+};
 type PlanType = "monthly" | "3month" | "yearly";
 
 const plans: Record<
@@ -26,33 +32,111 @@ const plans: Record<
   Airtel: {
     monthly: [
       {
+        amount: "39",
+        validity: "3 days",
+        data: "3GB/day",
+        calls: "Unlimited calls",
+        badge: "✨ Cricket Special",
+      },
+      {
         amount: "199",
         validity: "28 days",
-        data: "1GB/day",
+        data: "2GB",
         calls: "Unlimited calls",
       },
       {
         amount: "299",
         validity: "28 days",
-        data: "1.5GB/day",
+        data: "1GB/day",
         calls: "Unlimited calls",
       },
       {
-        amount: "359",
+        amount: "349",
+        validity: "28 days",
+        data: "1.5GB/day",
+        calls: "Unlimited calls",
+        badge: "⭐ Popular",
+      },
+    ],
+    "3month": [
+      {
+        amount: "859",
+        validity: "84 days",
+        data: "1.5GB/day",
+        calls: "Unlimited calls",
+        badge: "⭐ Very Popular",
+      },
+      {
+        amount: "979",
+        validity: "84 days",
+        data: "2GB/day",
+        calls: "Unlimited calls",
+      },
+    ],
+    yearly: [
+      {
+        amount: "3599",
+        validity: "365 days",
+        data: "2GB/day",
+        calls: "Unlimited calls",
+        badge: "⭐ Yearly Popular",
+      },
+    ],
+  },
+  Jio: {
+    monthly: [
+      {
+        amount: "299",
+        validity: "28 days",
+        data: "1.5GB/day",
+        calls: "Unlimited calls",
+        badge: "⭐ Most Popular",
+      },
+      {
+        amount: "349",
         validity: "28 days",
         data: "2GB/day",
         calls: "Unlimited calls",
       },
+    ],
+    "3month": [
       {
-        amount: "479",
-        validity: "56 days",
-        data: "1.5GB/day",
-        calls: "Unlimited calls",
-      },
-      {
-        amount: "599",
+        amount: "799",
         validity: "84 days",
         data: "1.5GB/day",
+        calls: "Unlimited calls",
+        badge: "⭐ Popular",
+      },
+      {
+        amount: "899",
+        validity: "84 days",
+        data: "2GB/day",
+        calls: "Unlimited calls",
+      },
+    ],
+    yearly: [
+      {
+        amount: "3599",
+        validity: "365 days",
+        data: "2.5GB/day",
+        calls: "Unlimited calls",
+        badge: "⭐ Yearly Popular",
+      },
+    ],
+  },
+  Vi: {
+    monthly: [
+      {
+        amount: "299",
+        validity: "28 days",
+        data: "1.5GB/day",
+        calls: "Unlimited calls",
+        badge: "⭐ Popular",
+      },
+      {
+        amount: "349",
+        validity: "28 days",
+        data: "1.5GB/day + Weekend Data",
         calls: "Unlimited calls",
       },
     ],
@@ -62,6 +146,7 @@ const plans: Record<
         validity: "84 days",
         data: "1.5GB/day",
         calls: "Unlimited calls",
+        badge: "⭐ Popular",
       },
       {
         amount: "839",
@@ -72,131 +157,7 @@ const plans: Record<
     ],
     yearly: [
       {
-        amount: "2999",
-        validity: "365 days",
-        data: "1.5GB/day",
-        calls: "Unlimited calls",
-      },
-      {
         amount: "3599",
-        validity: "365 days",
-        data: "2GB/day",
-        calls: "Unlimited calls",
-      },
-    ],
-  },
-  Jio: {
-    monthly: [
-      {
-        amount: "189",
-        validity: "28 days",
-        data: "1.5GB/day",
-        calls: "Unlimited calls",
-      },
-      {
-        amount: "299",
-        validity: "28 days",
-        data: "2GB/day",
-        calls: "Unlimited calls",
-      },
-      {
-        amount: "349",
-        validity: "28 days",
-        data: "3GB/day",
-        calls: "Unlimited calls",
-      },
-      {
-        amount: "479",
-        validity: "56 days",
-        data: "1.5GB/day",
-        calls: "Unlimited calls",
-      },
-      {
-        amount: "599",
-        validity: "84 days",
-        data: "1.5GB/day",
-        calls: "Unlimited calls",
-      },
-    ],
-    "3month": [
-      {
-        amount: "719",
-        validity: "84 days",
-        data: "1.5GB/day",
-        calls: "Unlimited calls",
-      },
-      {
-        amount: "899",
-        validity: "84 days",
-        data: "2GB/day",
-        calls: "Unlimited calls",
-      },
-    ],
-    yearly: [
-      {
-        amount: "2879",
-        validity: "365 days",
-        data: "1.5GB/day",
-        calls: "Unlimited calls",
-      },
-      {
-        amount: "3599",
-        validity: "365 days",
-        data: "2.5GB/day",
-        calls: "Unlimited calls",
-      },
-    ],
-  },
-  Vi: {
-    monthly: [
-      {
-        amount: "199",
-        validity: "28 days",
-        data: "1GB/day",
-        calls: "Unlimited calls",
-      },
-      {
-        amount: "299",
-        validity: "28 days",
-        data: "1.5GB/day",
-        calls: "Unlimited calls",
-      },
-      {
-        amount: "379",
-        validity: "28 days",
-        data: "2.5GB/day",
-        calls: "Unlimited calls",
-      },
-      {
-        amount: "479",
-        validity: "56 days",
-        data: "1.5GB/day",
-        calls: "Unlimited calls",
-      },
-    ],
-    "3month": [
-      {
-        amount: "719",
-        validity: "84 days",
-        data: "1.5GB/day",
-        calls: "Unlimited calls",
-      },
-      {
-        amount: "899",
-        validity: "84 days",
-        data: "2GB/day",
-        calls: "Unlimited calls",
-      },
-    ],
-    yearly: [
-      {
-        amount: "2899",
-        validity: "365 days",
-        data: "1.5GB/day",
-        calls: "Unlimited calls",
-      },
-      {
-        amount: "3499",
         validity: "365 days",
         data: "2GB/day",
         calls: "Unlimited calls",
@@ -210,46 +171,31 @@ const plans: Record<
         validity: "28 days",
         data: "2GB/day",
         calls: "Unlimited calls",
+        badge: "⭐ Most Popular",
       },
       {
-        amount: "247",
+        amount: "199",
         validity: "30 days",
-        data: "2GB/day",
-        calls: "Unlimited calls",
-      },
-      {
-        amount: "397",
-        validity: "60 days",
         data: "2GB/day",
         calls: "Unlimited calls",
       },
     ],
     "3month": [
       {
-        amount: "597",
-        validity: "90 days",
-        data: "2GB/day",
+        amount: "599",
+        validity: "84 days",
+        data: "3GB/day",
         calls: "Unlimited calls",
-      },
-      {
-        amount: "797",
-        validity: "180 days",
-        data: "2GB/day",
-        calls: "Unlimited calls",
+        badge: "⭐ Popular",
       },
     ],
     yearly: [
       {
-        amount: "1999",
+        amount: "2399",
         validity: "365 days",
         data: "2GB/day",
         calls: "Unlimited calls",
-      },
-      {
-        amount: "2399",
-        validity: "365 days",
-        data: "3GB/day",
-        calls: "Unlimited calls",
+        badge: "⭐ Yearly Popular",
       },
     ],
   },
@@ -440,9 +386,16 @@ export default function MobileRecharge() {
                       ₹
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-foreground">
-                        ₹{plan.amount}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-bold text-foreground">
+                          ₹{plan.amount}
+                        </p>
+                        {plan.badge && (
+                          <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded-full">
+                            {plan.badge}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         {plan.validity} • {plan.data} • {plan.calls}
                       </p>

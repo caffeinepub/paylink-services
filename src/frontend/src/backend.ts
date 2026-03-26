@@ -136,6 +136,9 @@ export interface WifiBookingLead {
     mobileNumber: string;
     aadhaarBackFile?: ExternalBlob;
     fullAddress: string;
+    latitude?: string;
+    longitude?: string;
+    googleMapsLink?: string;
     aadhaarFrontFile?: ExternalBlob;
 }
 export interface UserProfile {
@@ -147,6 +150,7 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
+    setupAdminDirectly(password: string): Promise<boolean>;
     _caffeineStorageBlobIsLive(hash: Uint8Array): Promise<boolean>;
     _caffeineStorageBlobsToDelete(): Promise<Array<Uint8Array>>;
     _caffeineStorageConfirmBlobDeletion(blobs: Array<Uint8Array>): Promise<void>;
@@ -162,7 +166,11 @@ export interface backendInterface {
      * / Admin-only: Get all leads
      */
     getAllWifiBookingLeads(): Promise<Array<WifiBookingLead>>;
-    getApprovedMobileRechargeLeads(): Promise<Array<MobileRechargeLead>>;
+    getDishRechargesWithPassword(password: string): Promise<Array<DishTVRechargeLead>>;
+    getMobileRechargesWithPassword(password: string): Promise<Array<MobileRechargeLead>>;
+    getPaymentBankRequestsWithPassword(password: string): Promise<Array<PaymentBankServiceRequest>>;
+    getWifiBookingsWithPassword(password: string): Promise<Array<WifiBookingLead>>;
+        getApprovedMobileRechargeLeads(): Promise<Array<MobileRechargeLead>>;
     getApprovedWifiBookingLeads(): Promise<Array<WifiBookingLead>>;
     /**
      * / User Profile Management
@@ -183,7 +191,7 @@ export interface backendInterface {
     /**
      * / Create new lead - Public, no auth required for customers to submit
      */
-    submitWifiBookingLead(customerName: string, mobileNumber: string, fullAddress: string, serviceType: string, aadhaarFrontFile: ExternalBlob | null, aadhaarBackFile: ExternalBlob | null, paymentScreenshotFile: ExternalBlob | null): Promise<bigint>;
+    submitWifiBookingLead(customerName: string, mobileNumber: string, fullAddress: string, serviceType: string, aadhaarFrontFile: ExternalBlob | null, aadhaarBackFile: ExternalBlob | null, paymentScreenshotFile: ExternalBlob | null, latitude: string | null, longitude: string | null, googleMapsLink: string | null): Promise<bigint>;
     updateDishTVRechargeLeadStatus(leadId: bigint, newStatus: string): Promise<void>;
     updateMobileRechargeLeadStatus(leadId: bigint, newStatus: string): Promise<void>;
     updatePaymentBankServiceRequestStatus(leadId: bigint, newStatus: string): Promise<void>;
@@ -363,7 +371,63 @@ export class Backend implements backendInterface {
             return from_candid_vec_n18(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getApprovedMobileRechargeLeads(): Promise<Array<MobileRechargeLead>> {
+    async getDishRechargesWithPassword(password: string): Promise<Array<DishTVRechargeLead>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getDishRechargesWithPassword(password);
+                return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getDishRechargesWithPassword(password);
+            return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getMobileRechargesWithPassword(password: string): Promise<Array<MobileRechargeLead>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getMobileRechargesWithPassword(password);
+                return from_candid_vec_n15(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getMobileRechargesWithPassword(password);
+            return from_candid_vec_n15(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getPaymentBankRequestsWithPassword(password: string): Promise<Array<PaymentBankServiceRequest>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getPaymentBankRequestsWithPassword(password);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getPaymentBankRequestsWithPassword(password);
+            return result;
+        }
+    }
+    async getWifiBookingsWithPassword(password: string): Promise<Array<WifiBookingLead>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getWifiBookingsWithPassword(password);
+                return from_candid_vec_n18(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getWifiBookingsWithPassword(password);
+            return from_candid_vec_n18(this._uploadFile, this._downloadFile, result);
+        }
+    }
+        async getApprovedMobileRechargeLeads(): Promise<Array<MobileRechargeLead>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getApprovedMobileRechargeLeads();
@@ -531,17 +595,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async submitWifiBookingLead(arg0: string, arg1: string, arg2: string, arg3: string, arg4: ExternalBlob | null, arg5: ExternalBlob | null, arg6: ExternalBlob | null): Promise<bigint> {
+    async submitWifiBookingLead(arg0: string, arg1: string, arg2: string, arg3: string, arg4: ExternalBlob | null, arg5: ExternalBlob | null, arg6: ExternalBlob | null, arg7: string | null, arg8: string | null, arg9: string | null): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.submitWifiBookingLead(arg0, arg1, arg2, arg3, await to_candid_opt_n24(this._uploadFile, this._downloadFile, arg4), await to_candid_opt_n24(this._uploadFile, this._downloadFile, arg5), await to_candid_opt_n24(this._uploadFile, this._downloadFile, arg6));
+                const result = await this.actor.submitWifiBookingLead(arg0, arg1, arg2, arg3, await to_candid_opt_n24(this._uploadFile, this._downloadFile, arg4), await to_candid_opt_n24(this._uploadFile, this._downloadFile, arg5), await to_candid_opt_n24(this._uploadFile, this._downloadFile, arg6), arg7 ? [arg7] : [], arg8 ? [arg8] : [], arg9 ? [arg9] : []);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.submitWifiBookingLead(arg0, arg1, arg2, arg3, await to_candid_opt_n24(this._uploadFile, this._downloadFile, arg4), await to_candid_opt_n24(this._uploadFile, this._downloadFile, arg5), await to_candid_opt_n24(this._uploadFile, this._downloadFile, arg6));
+            const result = await this.actor.submitWifiBookingLead(arg0, arg1, arg2, arg3, await to_candid_opt_n24(this._uploadFile, this._downloadFile, arg4), await to_candid_opt_n24(this._uploadFile, this._downloadFile, arg5), await to_candid_opt_n24(this._uploadFile, this._downloadFile, arg6), arg7 ? [arg7] : [], arg8 ? [arg8] : [], arg9 ? [arg9] : []);
             return result;
         }
     }
@@ -598,6 +662,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.updateWifiBookingLeadStatus(arg0, arg1);
+            return result;
+        }
+    }
+    async setupAdminDirectly(arg0: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.setupAdminDirectly(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.setupAdminDirectly(arg0);
             return result;
         }
     }
@@ -697,6 +775,9 @@ async function from_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promi
     aadhaarBackFile: [] | [_ExternalBlob];
     fullAddress: string;
     aadhaarFrontFile: [] | [_ExternalBlob];
+    latitude: [] | [string];
+    longitude: [] | [string];
+    googleMapsLink: [] | [string];
 }): Promise<{
     id: bigint;
     customerName: string;
@@ -708,6 +789,9 @@ async function from_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promi
     aadhaarBackFile?: ExternalBlob;
     fullAddress: string;
     aadhaarFrontFile?: ExternalBlob;
+    latitude?: string;
+    longitude?: string;
+    googleMapsLink?: string;
 }> {
     return {
         id: value.id,
@@ -719,6 +803,9 @@ async function from_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promi
         mobileNumber: value.mobileNumber,
         aadhaarBackFile: record_opt_to_undefined(await from_candid_opt_n13(_uploadFile, _downloadFile, value.aadhaarBackFile)),
         fullAddress: value.fullAddress,
+        latitude: value.latitude?.[0],
+        longitude: value.longitude?.[0],
+        googleMapsLink: value.googleMapsLink?.[0],
         aadhaarFrontFile: record_opt_to_undefined(await from_candid_opt_n13(_uploadFile, _downloadFile, value.aadhaarFrontFile))
     };
 }

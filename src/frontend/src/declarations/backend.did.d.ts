@@ -51,6 +51,9 @@ export interface WifiBookingLead {
   'mobileNumber' : string,
   'aadhaarBackFile' : [] | [ExternalBlob],
   'fullAddress' : string,
+  'latitude' : [] | [string],
+  'longitude' : [] | [string],
+  'googleMapsLink' : [] | [string],
   'aadhaarFrontFile' : [] | [ExternalBlob],
 }
 export interface _CaffeineStorageCreateCertificateResult {
@@ -81,6 +84,7 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'setupAdminDirectly' : ActorMethod<[string], boolean>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'getAllDishTVRechargeLeads' : ActorMethod<[], Array<DishTVRechargeLead>>,
   'getAllMobileRechargeLeads' : ActorMethod<[], Array<MobileRechargeLead>>,
@@ -92,7 +96,11 @@ export interface _SERVICE {
    * / Admin-only: Get all leads
    */
   'getAllWifiBookingLeads' : ActorMethod<[], Array<WifiBookingLead>>,
-  'getApprovedMobileRechargeLeads' : ActorMethod<[], Array<MobileRechargeLead>>,
+  'getDishRechargesWithPassword' : ActorMethod<[string], Array<DishTVRechargeLead>>,
+  'getMobileRechargesWithPassword' : ActorMethod<[string], Array<MobileRechargeLead>>,
+  'getPaymentBankRequestsWithPassword' : ActorMethod<[string], Array<PaymentBankServiceRequest>>,
+  'getWifiBookingsWithPassword' : ActorMethod<[string], Array<WifiBookingLead>>,
+    'getApprovedMobileRechargeLeads' : ActorMethod<[], Array<MobileRechargeLead>>,
   'getApprovedWifiBookingLeads' : ActorMethod<[], Array<WifiBookingLead>>,
   /**
    * / User Profile Management
@@ -131,6 +139,9 @@ export interface _SERVICE {
       [] | [ExternalBlob],
       [] | [ExternalBlob],
       [] | [ExternalBlob],
+      [] | [string],
+      [] | [string],
+      [] | [string],
     ],
     bigint
   >,

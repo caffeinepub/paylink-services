@@ -7,6 +7,7 @@ import MobileRecharge from "./pages/MobileRecharge";
 import OtherPayment from "./pages/OtherPayment";
 import PayNow from "./pages/PayNow";
 import PaymentBank from "./pages/PaymentBank";
+import QRCodePage from "./pages/QRCode";
 import WifiBooking from "./pages/WifiBooking";
 
 const rootRoute = createRootRoute({
@@ -67,6 +68,12 @@ const adminRoute = createRoute({
   component: Admin,
 });
 
+const qrCodeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/qr",
+  component: QRCodePage,
+});
+
 export const routeTree = rootRoute.addChildren([
   homeRoute,
   wifiBookingRoute,
@@ -77,4 +84,5 @@ export const routeTree = rootRoute.addChildren([
   otherPaymentRoute,
   contactRoute,
   adminRoute,
+  qrCodeRoute,
 ]);

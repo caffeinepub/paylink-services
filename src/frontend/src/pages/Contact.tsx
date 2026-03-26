@@ -75,11 +75,15 @@ export default function Contact() {
             <p className="text-xs text-muted-foreground">9 AM – 8 PM</p>
             <p className="text-xs text-muted-foreground">Mon – Sat</p>
           </div>
-          <div className="border border-border rounded-xl p-3">
+          <div className="border border-border rounded-xl p-3 col-span-2">
             <MapPin className="w-4 h-4 text-primary mb-1.5" />
-            <p className="text-xs font-semibold">Services</p>
-            <p className="text-xs text-muted-foreground">WiFi, Recharge</p>
-            <p className="text-xs text-muted-foreground">& Payment Bank</p>
+            <p className="text-xs font-semibold">Hamara Address</p>
+            <p className="text-xs text-muted-foreground">
+              Old Bus Stand, Near Pushkar Restaurant
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Pali (Rajasthan) - 306401
+            </p>
           </div>
         </div>
       </div>

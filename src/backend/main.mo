@@ -13,6 +13,20 @@ import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
 actor {
+  // Legacy type matching old stable memory schema (no location fields)
+  type WifiBookingLeadLegacy = {
+    id : Nat;
+    customerName : Text;
+    mobileNumber : Text;
+    fullAddress : Text;
+    serviceType : Text;
+    aadhaarFrontFile : ?Storage.ExternalBlob;
+    aadhaarBackFile : ?Storage.ExternalBlob;
+    paymentScreenshotFile : ?Storage.ExternalBlob;
+    status : Text;
+    createdAt : Int;
+  };
+
   module WifiBookingLead {
     public func compare(lead1 : WifiBookingLead, lead2 : WifiBookingLead) : Order.Order {
       Nat.compare(lead1.id, lead2.id);
@@ -42,6 +56,9 @@ actor {
     customerName : Text;
     mobileNumber : Text;
     fullAddress : Text;
+    latitude : ?Text;
+    longitude : ?Text;
+    googleMapsLink : ?Text;
     serviceType : Text;
     aadhaarFrontFile : ?Storage.ExternalBlob;
     aadhaarBackFile : ?Storage.ExternalBlob;
@@ -83,16 +100,60 @@ actor {
     name : Text;
   };
 
-  let wifiBookingLeads = Map.empty<Nat, WifiBookingLead>();
-  let mobileRechargeLeads = Map.empty<Nat, MobileRechargeLead>();
-  let dishTVRechargeLeads = Map.empty<Nat, DishTVRechargeLead>();
-  let paymentBankServiceRequests = Map.empty<Nat, PaymentBankServiceRequest>();
-  let userProfiles = Map.empty<Principal, UserProfile>();
+  // Legacy stable var - loads existing data from old stable memory
+  stable let wifiBookingLeads = Map.empty<Nat, WifiBookingLeadLegacy>();
+  // New stable var with updated schema including location fields
+  stable let wifiBookingLeadsV2 = Map.empty<Nat, WifiBookingLead>();
 
-  var nextLeadId = 1;
+  stable let mobileRechargeLeads = Map.empty<Nat, MobileRechargeLead>();
+  stable let dishTVRechargeLeads = Map.empty<Nat, DishTVRechargeLead>();
+  stable let paymentBankServiceRequests = Map.empty<Nat, PaymentBankServiceRequest>();
+  stable let userProfiles = Map.empty<Principal, UserProfile>();
+
+  stable var nextLeadId = 1;
 
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
+
+  /// Migrate old wifiBookingLeads into wifiBookingLeadsV2 after upgrade
+  system func postupgrade() {
+    for ((k, v) in wifiBookingLeads.entries()) {
+      if (wifiBookingLeadsV2.get(k) == null) {
+        wifiBookingLeadsV2.add(
+          k,
+          {
+            id = v.id;
+            customerName = v.customerName;
+            mobileNumber = v.mobileNumber;
+            fullAddress = v.fullAddress;
+            latitude = null;
+            longitude = null;
+            googleMapsLink = null;
+            serviceType = v.serviceType;
+            aadhaarFrontFile = v.aadhaarFrontFile;
+            aadhaarBackFile = v.aadhaarBackFile;
+            paymentScreenshotFile = v.paymentScreenshotFile;
+            status = v.status;
+            createdAt = v.createdAt;
+          },
+        );
+      };
+    };
+  };
+
+  /// Direct admin setup with password - no token needed
+  /// Only works when no admin has been assigned yet (first time setup)
+  public shared ({ caller }) func setupAdminDirectly(password : Text) : async Bool {
+    if (caller.isAnonymous()) { return false };
+    if (password != "Vasu1179") { return false };
+    if (not accessControlState.adminAssigned) {
+      accessControlState.userRoles.add(caller, #admin);
+      accessControlState.adminAssigned := true;
+      return true;
+    };
+    // If admin already assigned, check if this caller is the admin
+    AccessControl.isAdmin(accessControlState, caller);
+  };
 
   /// User Profile Management
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
@@ -117,15 +178,18 @@ actor {
   };
 
   /// Create new lead - Public, no auth required for customers to submit
-  public shared ({ caller }) func submitWifiBookingLead(customerName : Text, mobileNumber : Text, fullAddress : Text, serviceType : Text, aadhaarFrontFile : ?Storage.ExternalBlob, aadhaarBackFile : ?Storage.ExternalBlob, paymentScreenshotFile : ?Storage.ExternalBlob) : async Nat {
+  public shared ({ caller }) func submitWifiBookingLead(customerName : Text, mobileNumber : Text, fullAddress : Text, serviceType : Text, aadhaarFrontFile : ?Storage.ExternalBlob, aadhaarBackFile : ?Storage.ExternalBlob, paymentScreenshotFile : ?Storage.ExternalBlob, latitude : ?Text, longitude : ?Text, googleMapsLink : ?Text) : async Nat {
     let id = nextLeadId;
-    wifiBookingLeads.add(
+    wifiBookingLeadsV2.add(
       id,
       {
         id;
         customerName;
         mobileNumber;
         fullAddress;
+        latitude;
+        longitude;
+        googleMapsLink;
         serviceType;
         aadhaarFrontFile;
         aadhaarBackFile;
@@ -196,7 +260,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can update lead status");
     };
-    let existing = switch (wifiBookingLeads.get(leadId)) {
+    let existing = switch (wifiBookingLeadsV2.get(leadId)) {
       case (null) { Runtime.trap("Lead not found") };
       case (?l) { l };
     };
@@ -204,7 +268,7 @@ actor {
       existing with
       status = newStatus;
     };
-    wifiBookingLeads.add(leadId, updatedLead);
+    wifiBookingLeadsV2.add(leadId, updatedLead);
   };
 
   public shared ({ caller }) func updateMobileRechargeLeadStatus(leadId : Nat, newStatus : Text) : async () {
@@ -257,7 +321,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can fetch all leads");
     };
-    wifiBookingLeads.values().toArray().sort();
+    wifiBookingLeadsV2.values().toArray().sort();
   };
 
   public query ({ caller }) func getAllMobileRechargeLeads() : async [MobileRechargeLead] {
@@ -286,14 +350,14 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can fetch leads");
     };
-    wifiBookingLeads.values().filter(func(lead) { lead.status == "Pending" }).toArray().sort();
+    wifiBookingLeadsV2.values().filter(func(lead) { lead.status == "Pending" }).toArray().sort();
   };
 
   public query ({ caller }) func getApprovedWifiBookingLeads() : async [WifiBookingLead] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can fetch leads");
     };
-    wifiBookingLeads.values().filter(func(lead) { lead.status == "Approved" }).toArray().sort();
+    wifiBookingLeadsV2.values().filter(func(lead) { lead.status == "Approved" }).toArray().sort();
   };
 
   public query ({ caller }) func getPendingMobileRechargeLeads() : async [MobileRechargeLead] {
@@ -308,6 +372,27 @@ actor {
       Runtime.trap("Unauthorized: Only admins can fetch leads");
     };
     mobileRechargeLeads.values().filter(func(lead) { lead.status == "Approved" }).toArray().sort();
+  };
+
+  /// Password-based admin access - no Internet Identity required
+  public query func getWifiBookingsWithPassword(password : Text) : async [WifiBookingLead] {
+    if (password != "Vasu1179") { return [] };
+    wifiBookingLeadsV2.values().toArray().sort();
+  };
+
+  public query func getMobileRechargesWithPassword(password : Text) : async [MobileRechargeLead] {
+    if (password != "Vasu1179") { return [] };
+    mobileRechargeLeads.values().toArray().sort();
+  };
+
+  public query func getDishRechargesWithPassword(password : Text) : async [DishTVRechargeLead] {
+    if (password != "Vasu1179") { return [] };
+    dishTVRechargeLeads.values().toArray().sort();
+  };
+
+  public query func getPaymentBankRequestsWithPassword(password : Text) : async [PaymentBankServiceRequest] {
+    if (password != "Vasu1179") { return [] };
+    paymentBankServiceRequests.values().toArray().sort();
   };
 
   /// General file storage mixin

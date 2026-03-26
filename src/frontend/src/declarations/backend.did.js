@@ -61,6 +61,9 @@ export const WifiBookingLead = IDL.Record({
   'mobileNumber' : IDL.Text,
   'aadhaarBackFile' : IDL.Opt(ExternalBlob),
   'fullAddress' : IDL.Text,
+  'latitude' : IDL.Opt(IDL.Text),
+  'longitude' : IDL.Opt(IDL.Text),
+  'googleMapsLink' : IDL.Opt(IDL.Text),
   'aadhaarFrontFile' : IDL.Opt(ExternalBlob),
 });
 export const UserProfile = IDL.Record({ 'name' : IDL.Text });
@@ -114,6 +117,27 @@ export const idlService = IDL.Service({
       [IDL.Vec(WifiBookingLead)],
       ['query'],
     ),
+  'getDishRechargesWithPassword' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(DishTVRechargeLead)],
+      ['query'],
+    ),
+  'getMobileRechargesWithPassword' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(MobileRechargeLead)],
+      ['query'],
+    ),
+  'getPaymentBankRequestsWithPassword' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(PaymentBankServiceRequest)],
+      ['query'],
+    ),
+  'getWifiBookingsWithPassword' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(WifiBookingLead)],
+      ['query'],
+    ),
+  'setupAdminDirectly' : IDL.Func([IDL.Text], [IDL.Bool], []),
   'getApprovedMobileRechargeLeads' : IDL.Func(
       [],
       [IDL.Vec(MobileRechargeLead)],
@@ -167,6 +191,9 @@ export const idlService = IDL.Service({
         IDL.Opt(ExternalBlob),
         IDL.Opt(ExternalBlob),
         IDL.Opt(ExternalBlob),
+        IDL.Opt(IDL.Text),
+        IDL.Opt(IDL.Text),
+        IDL.Opt(IDL.Text),
       ],
       [IDL.Nat],
       [],
@@ -237,6 +264,9 @@ export const idlFactory = ({ IDL }) => {
     'mobileNumber' : IDL.Text,
     'aadhaarBackFile' : IDL.Opt(ExternalBlob),
     'fullAddress' : IDL.Text,
+    'latitude' : IDL.Opt(IDL.Text),
+    'longitude' : IDL.Opt(IDL.Text),
+    'googleMapsLink' : IDL.Opt(IDL.Text),
     'aadhaarFrontFile' : IDL.Opt(ExternalBlob),
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text });
@@ -290,6 +320,27 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(WifiBookingLead)],
         ['query'],
       ),
+    'getDishRechargesWithPassword' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(DishTVRechargeLead)],
+        ['query'],
+      ),
+    'getMobileRechargesWithPassword' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(MobileRechargeLead)],
+        ['query'],
+      ),
+    'getPaymentBankRequestsWithPassword' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(PaymentBankServiceRequest)],
+        ['query'],
+      ),
+    'getWifiBookingsWithPassword' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(WifiBookingLead)],
+        ['query'],
+      ),
+    'setupAdminDirectly' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'getApprovedMobileRechargeLeads' : IDL.Func(
         [],
         [IDL.Vec(MobileRechargeLead)],
@@ -343,6 +394,9 @@ export const idlFactory = ({ IDL }) => {
           IDL.Opt(ExternalBlob),
           IDL.Opt(ExternalBlob),
           IDL.Opt(ExternalBlob),
+          IDL.Opt(IDL.Text),
+          IDL.Opt(IDL.Text),
+          IDL.Opt(IDL.Text),
         ],
         [IDL.Nat],
         [],

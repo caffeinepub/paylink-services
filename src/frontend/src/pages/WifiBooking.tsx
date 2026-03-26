@@ -4,7 +4,15 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { useSearch } from "@tanstack/react-router";
-import { AlertCircle, CheckCircle, Loader2, Upload, Wifi } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  ExternalLink,
+  Loader2,
+  MapPin,
+  Upload,
+  Wifi,
+} from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -49,6 +57,9 @@ export default function WifiBooking() {
   const [customerName, setCustomerName] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
   const [fullAddress, setFullAddress] = useState("");
+  const [latitude, setLatitude] = useState<string | null>(null);
+  const [longitude, setLongitude] = useState<string | null>(null);
+  const [googleMapsLink, setGoogleMapsLink] = useState<string | null>(null);
   const [serviceType, setServiceType] = useState(
     isIPTV ? "WiFi + IPTV" : "Only WiFi",
   );
@@ -57,8 +68,45 @@ export default function WifiBooking() {
   const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [locationLoading, setLocationLoading] = useState(false);
 
   const submitMutation = useSubmitWifiBooking();
+
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Aapka browser location support nahi karta");
+      return;
+    }
+    setLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude: lat, longitude: lon } = pos.coords;
+          const latStr = lat.toFixed(6);
+          const lonStr = lon.toFixed(6);
+          const mapsLink = `https://www.google.com/maps?q=${latStr},${lonStr}`;
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latStr}&lon=${lonStr}`,
+          );
+          const data = await res.json();
+          const addr = data.display_name || `${latStr}, ${lonStr}`;
+          setFullAddress(addr);
+          setLatitude(latStr);
+          setLongitude(lonStr);
+          setGoogleMapsLink(mapsLink);
+          toast.success("Location mil gayi!");
+        } catch {
+          toast.error("Location nahi mili, manually daalein");
+        } finally {
+          setLocationLoading(false);
+        }
+      },
+      () => {
+        toast.error("Location permission denied, manually daalein");
+        setLocationLoading(false);
+      },
+    );
+  };
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -101,6 +149,9 @@ export default function WifiBooking() {
         aadhaarFront: aadhaarFrontBlob,
         aadhaarBack: aadhaarBackBlob,
         paymentScreenshot: paymentBlob,
+        latitude,
+        longitude,
+        googleMapsLink,
       });
       setSubmitted(true);
     } catch {
@@ -261,6 +312,24 @@ export default function WifiBooking() {
         {/* Full Address */}
         <div className="space-y-1.5">
           <Label htmlFor="fullAddress">Full Address *</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="w-full flex items-center gap-2 border-primary/40 text-primary"
+            onClick={handleGetLocation}
+            disabled={locationLoading}
+            data-ocid="wifi.button"
+          >
+            {locationLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <MapPin className="w-4 h-4" />
+            )}
+            {locationLoading
+              ? "Location dhundh raha hai..."
+              : "Current Location Use Karein"}
+          </Button>
           <Textarea
             id="fullAddress"
             data-ocid="wifi.textarea"
@@ -269,6 +338,29 @@ export default function WifiBooking() {
             onChange={(e) => setFullAddress(e.target.value)}
             rows={3}
           />
+          {/* Show coordinates and Maps link if location was captured */}
+          {latitude && longitude && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-3 space-y-1.5">
+              <p className="text-xs font-semibold text-green-800">
+                📍 Location Captured
+              </p>
+              <p className="text-xs text-green-700">
+                <span className="font-medium">Lat:</span> {latitude} &nbsp;
+                <span className="font-medium">Long:</span> {longitude}
+              </p>
+              {googleMapsLink && (
+                <a
+                  href={googleMapsLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-blue-600 font-medium underline"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Google Maps mein dekho
+                </a>
+              )}
+            </div>
+          )}
           {errors.fullAddress && (
             <p
               className="text-xs text-destructive"
